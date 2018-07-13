@@ -25,8 +25,7 @@ open class Repository(val table: String, val connection: Connection, val valueRe
         return connection.wrappedStatement(SQLStatement(stmtInit)).executeQuery().entities()
     }
 
-    fun exec(stmtInit: SQLStatement.() -> String)
-        = connection.wrappedStatement(SQLStatement(stmtInit)).execute()
+    fun exec(stmtInit: SQLStatement.() -> String) = connection.wrappedStatement(SQLStatement(stmtInit)).execute()
 
     fun insert(model: Any, ignored: List<String> = emptyList()) {
 
@@ -36,11 +35,11 @@ open class Repository(val table: String, val connection: Connection, val valueRe
         clazz.memberProperties.forEach {
             if (!ignored.contains(it.name)) {
 
-                val clazz = it.returnType.javaType as Class<*>
+                val returnType = it.returnType.javaType as Class<*>
                 val value = it.call(model)
 
-                if(clazz.isArray) {
-                    val arrayType = clazz.simpleName.dropLast(2).toLowerCase()
+                if (returnType.isArray) {
+                    val arrayType = returnType.simpleName.dropLast(2).toLowerCase()
 
                     params.put(it.name.toSnakeCase(), SQLStatement.TypedBinding(value, arrayType))
                 } else {
@@ -82,7 +81,7 @@ open class Repository(val table: String, val connection: Connection, val valueRe
 
         while (next()) {
 
-            if(valueReader.couldBeRead(T::class)) {
+            if (valueReader.couldBeRead(T::class)) {
                 items.add(valueReader.readFirst(this, T::class) as T)
             } else {
                 val params = constructor.parameters.map {

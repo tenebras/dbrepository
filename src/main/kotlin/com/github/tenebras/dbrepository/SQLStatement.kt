@@ -9,7 +9,7 @@ class SQLStatement(init: SQLStatement.() -> String) {
 
     fun bind(param: Any?, type: String = ""): String {
 
-        param.isComplexValue()
+//        param.isComplexValue()
 
         if (type.isNotEmpty()) {
             params.add(TypedBinding(param, type))
@@ -20,7 +20,7 @@ class SQLStatement(init: SQLStatement.() -> String) {
         return "?"
     }
 
-    inline fun Any?.isComplexValue() {
-
-    }
+//    inline fun Any?.isComplexValue() {
+//
+//    }
 }

@@ -1,4 +1,4 @@
-package com.kostynenko.one.extension
+package com.github.tenebras.dbrepository.extension
 
 import com.github.tenebras.dbrepository.SQLStatement
 import com.github.tenebras.dbrepository.WrappedPreparedStatement

@@ -1,7 +1,7 @@
 package com.github.tenebras.dbrepository
 
 import com.github.tenebras.dbrepository.extension.toSnakeCase
-import com.kostynenko.one.extension.wrappedStatement
+import com.github.tenebras.dbrepository.extension.wrappedStatement
 import java.sql.Connection
 import java.sql.ResultSet
 import kotlin.reflect.full.memberProperties

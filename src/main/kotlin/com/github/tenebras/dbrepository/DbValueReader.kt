@@ -125,7 +125,5 @@ open class DbValueReader {
                 throw e
             }
         }
-
-        //throw Exception("No resolver for type $type")
     }
 }

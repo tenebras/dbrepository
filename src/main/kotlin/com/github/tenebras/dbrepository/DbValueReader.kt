@@ -1,6 +1,10 @@
 package com.github.tenebras.dbrepository
 
-import com.github.tenebras.dbrepository.extension.*
+import com.github.tenebras.dbrepository.extension.getLocalDate
+import com.github.tenebras.dbrepository.extension.getOffsetDateTime
+import com.github.tenebras.dbrepository.extension.getZonedDateTime
+import com.github.tenebras.dbrepository.extension.toSnakeCase
+import com.google.gson.Gson
 import java.lang.Exception
 import java.sql.ResultSet
 import java.sql.Time
@@ -13,6 +17,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.javaType
@@ -22,9 +27,13 @@ open class DbValueReader {
     val fallbackResolver = { rs: ResultSet, name: String, type: KType ->
 
         val typeName = type.javaType.typeName
+        val columnTypeName = rs.metaData.getColumnTypeName(rs.findColumn(name))
 
         when {
+            columnTypeName == "jsonb" || columnTypeName == "json" -> Gson().fromJson(rs.getString(name), type.javaType)
+
             typeName.endsWith("[]") -> rs.getArray(name).array
+
             type.isSubtypeOf(Enum::class.starProjectedType) -> {
 
                 // TODO: stop on null
@@ -35,18 +44,27 @@ open class DbValueReader {
                     ?: throw Exception("No matching enum constant for class $typeName, value is '$value'")
             }
             else -> {
-                val constructor = Class.forName(typeName).kotlin.primaryConstructor
 
-                if (constructor == null || constructor.parameters.size != 1) {
-                    throw Exception("No suitable function for $typeName. Constructor renderer one parameter required.")
+                val value = rs.getObject(name)
+
+                if((type.classifier as KClass<*>).isSuperclassOf(rs.getObject(name).javaClass.kotlin)) {
+                    value
+                } else {
+                    val clazz = Class.forName(typeName)
+                    val constructor = clazz.kotlin.primaryConstructor
+
+                    if (constructor == null || constructor.parameters.size != 1) {
+                        throw Exception("No suitable function for $typeName. Constructor renderer one parameter required.")
+                    }
+
+                    constructor.call(read(rs, constructor.parameters.first().type, name))
                 }
-
-                constructor.call(read(rs, constructor.parameters.first().type, name))
             }
         }
     }
 
     init {
+        // todo: review is all this required. Maybe getObject will work just fine?
         register(String::class, ResultSet::getString)
         register(Byte::class, ResultSet::getByte)
         register(Short::class, ResultSet::getShort)
@@ -55,7 +73,6 @@ open class DbValueReader {
         register(Float::class, ResultSet::getFloat)
         register(Double::class, ResultSet::getDouble)
         register(Boolean::class, ResultSet::getBoolean)
-        register(UUID::class, ResultSet::getUUID)
         register(ZonedDateTime::class, ResultSet::getZonedDateTime)
         register(OffsetDateTime::class, ResultSet::getOffsetDateTime)
         register(Date::class, ResultSet::getDate)

@@ -1,10 +1,6 @@
 package com.github.tenebras.dbrepository
 
-import com.github.tenebras.dbrepository.extension.getLocalDate
-import com.github.tenebras.dbrepository.extension.getOffsetDateTime
-import com.github.tenebras.dbrepository.extension.getZonedDateTime
-import com.github.tenebras.dbrepository.extension.toSnakeCase
-import com.google.gson.Gson
+import com.github.tenebras.dbrepository.extension.*
 import java.lang.Exception
 import java.sql.ResultSet
 import java.sql.Time
@@ -30,7 +26,8 @@ open class DbValueReader {
         val columnTypeName = rs.metaData.getColumnTypeName(rs.findColumn(name))
 
         when {
-            columnTypeName == "jsonb" || columnTypeName == "json" -> Gson().fromJson(rs.getString(name), type.javaType)
+            columnTypeName == "jsonb" || columnTypeName == "json" ->
+                rs.getString(name).parseJson((type.classifier as KClass<*>).java)
 
             typeName.endsWith("[]") -> rs.getArray(name).array
 
@@ -41,13 +38,13 @@ open class DbValueReader {
                 val constants = (type.classifier as KClass<Enum<*>>).javaObjectType.enumConstants
 
                 constants.firstOrNull { it.name == value }
-                    ?: throw Exception("No matching enum constant for class $typeName, value is '$value'")
+                        ?: throw Exception("No matching enum constant for class $typeName, value is '$value'")
             }
             else -> {
 
                 val value = rs.getObject(name)
 
-                if((type.classifier as KClass<*>).isSuperclassOf(rs.getObject(name).javaClass.kotlin)) {
+                if ((type.classifier as KClass<*>).isSuperclassOf(rs.getObject(name).javaClass.kotlin)) {
                     value
                 } else {
                     val clazz = Class.forName(typeName)

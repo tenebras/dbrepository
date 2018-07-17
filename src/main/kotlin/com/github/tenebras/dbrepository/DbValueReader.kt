@@ -108,9 +108,7 @@ open class DbValueReader {
             return if (resolvers.contains(normalizedType)) {
                 resolvers[normalizedType]!!.invoke(rs, name.toSnakeCase())
             } else {
-                //try {
                 fallbackResolver.invoke(rs, name.toSnakeCase(), type)
-                //} catch (e: Exception) {}
             }
 
         } catch (e: Exception) {

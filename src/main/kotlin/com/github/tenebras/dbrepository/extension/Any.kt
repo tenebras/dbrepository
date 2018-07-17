@@ -10,11 +10,11 @@ fun Any?.toJson(exclude: List<String> = emptyList()): String =
             gson().toJson(this.toMap(exclude))
         }
 
-fun Any?.toJson(extension: Map<String, Any>, exclude: List<String> = emptyList()): String = gson().toJson(this.toMap(exclude) + extension)
+fun Any?.toJson(extension: Map<String, Any>, exclude: List<String> = emptyList()): String = gson().toJson(this.toMap(exclude, extension))
 
-fun Any?.toJson(extension: Any, exclude: List<String> = emptyList()): String = gson().toJson(this.toMap(exclude) + extension.toMap())
+fun Any?.toJson(extension: Any, exclude: List<String> = emptyList()): String = gson().toJson(this.toMap(exclude, extension.toMap()) )
 
-fun Any?.toMap(exclude: List<String> = emptyList()): Map<String, Any?> {
+fun Any?.toMap(exclude: List<String> = emptyList(), extension: Map<String, Any?> = emptyMap()): Map<String, Any?> {
     if (this == null) {
         return emptyMap()
     }
@@ -27,5 +27,5 @@ fun Any?.toMap(exclude: List<String> = emptyList()): Map<String, Any?> {
         }
     }
 
-    return properties
+    return properties + extension
 }

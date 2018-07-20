@@ -13,5 +13,5 @@ fun <T> Array<T>.toJson(entityExtension: Any, exclude: List<String> = emptyList(
 }
 
 fun <T> Array<T>.toJson(exclude: List<String> = emptyList()): String {
-    return this.toJson(exclude = exclude)
+    return this.toJson(emptyMap(), exclude)
 }

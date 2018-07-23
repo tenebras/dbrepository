@@ -1,15 +1,8 @@
 package com.github.tenebras.dbrepository.extension
 
-import com.github.tenebras.dbrepository.SQLStatement
-import com.github.tenebras.dbrepository.WrappedPreparedStatement
+import com.github.tenebras.dbrepository.alternative.Sql
 import java.sql.Connection
 
-fun Connection.wrappedStatement(sql: String)
-    = WrappedPreparedStatement(this, sql)
-
-fun Connection.wrappedStatement(sql: String, params: Collection<Any?>)
-    = WrappedPreparedStatement(this, sql).bindMultiple(params)
-
-fun Connection.wrappedStatement(sqlStatement: SQLStatement)
-    = WrappedPreparedStatement(this, sqlStatement.sql)
-        .bindMultiple(sqlStatement.params)
+fun Connection.prepare(sql: Sql) = this.prepareStatement(sql.statement).bindMultiple(sql.values)
+fun Connection.query(sql: Sql) = prepare(sql).executeQuery()
+fun Connection.execute(sql: Sql) = prepare(sql).execute()

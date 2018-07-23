@@ -13,6 +13,6 @@ class OffsetDateTimeTypeAdapter : JsonSerializer<OffsetDateTime>, JsonDeserializ
     }
 
     override fun serialize(src: OffsetDateTime?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
-        return JsonPrimitive(src?.format(DateTimeFormatter.ISO_ZONED_DATE_TIME))
+        return JsonPrimitive(src?.format(DateTimeFormatter.ISO_INSTANT))
     }
 }

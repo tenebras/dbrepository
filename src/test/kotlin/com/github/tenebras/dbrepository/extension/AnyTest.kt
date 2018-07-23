@@ -7,7 +7,7 @@ import java.util.*
 class AnyTest {
     @Test
     fun `it should extend object`() {
-        val comment = Comment(UUID.randomUUID(), "value", "authorId", ZonedDateTime.now())
+        val comment = Comment(UUID.randomUUID(), "statement", "authorId", ZonedDateTime.now())
 
         val serialized = comment.toJson(object {
             val link = "http://example.com/comments/${comment.id}"

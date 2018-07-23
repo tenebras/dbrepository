@@ -18,7 +18,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.javaType
 
-open class DbValueReader {
+open class ValueReader {
     val resolvers = mutableMapOf<String, (ResultSet, String) -> Any?>()
     val fallbackResolver = { rs: ResultSet, name: String, type: KType ->
 
@@ -38,7 +38,7 @@ open class DbValueReader {
                 val constants = (type.classifier as KClass<Enum<*>>).javaObjectType.enumConstants
 
                 constants.firstOrNull { it.name == value }
-                        ?: throw Exception("No matching enum constant for class $typeName, value is '$value'")
+                        ?: throw Exception("No matching enum constant for class $typeName, statement is '$value'")
             }
             else -> {
 
@@ -70,18 +70,16 @@ open class DbValueReader {
         register(Float::class, ResultSet::getFloat)
         register(Double::class, ResultSet::getDouble)
         register(Boolean::class, ResultSet::getBoolean)
-        register(ZonedDateTime::class, ResultSet::getZonedDateTime)
-        register(OffsetDateTime::class, ResultSet::getOffsetDateTime)
+
         register(Date::class, ResultSet::getDate)
         register(Time::class, ResultSet::getTime)
         register(Timestamp::class, ResultSet::getTimestamp)
         register(LocalDate::class, ResultSet::getLocalDate)
+        register(ZonedDateTime::class, ResultSet::getZonedDateTime)
+        register(OffsetDateTime::class, ResultSet::getOffsetDateTime)
     }
 
-    fun couldBeRead(type: KClass<*>) = resolvers.containsKey(type.qualifiedName!!)
-
-
-    fun register(type: KClass<*>, resolver: (ResultSet, String) -> Any?): DbValueReader {
+    fun register(type: KClass<*>, resolver: (ResultSet, String) -> Any?): ValueReader {
         resolvers.put(type.qualifiedName!!, resolver)
         return this
     }

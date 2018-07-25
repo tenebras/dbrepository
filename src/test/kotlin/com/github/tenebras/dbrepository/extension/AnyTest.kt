@@ -20,19 +20,7 @@ class AnyTest {
         println(serialized)
     }
 
-    @Test
-    fun `it should extend array element`() {
-        val comments = arrayOf(
-                Comment(UUID.randomUUID(), "value1", "authorId1", ZonedDateTime.now()),
-                Comment(UUID.randomUUID(), "value2", "authorId2", ZonedDateTime.now())
-        )
 
-        val json = comments.toJson(object {
-            val link = "http://example.com"
-        }, listOf("at", "authorId"))
-
-        println(json)
-    }
 
     data class Comment(val id: UUID, val value: String, val authorId: String, val at: ZonedDateTime)
 }

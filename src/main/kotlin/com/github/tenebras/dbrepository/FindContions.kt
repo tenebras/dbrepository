@@ -1,4 +1,4 @@
-package com.github.tenebras.dbrepository.alternative
+package com.github.tenebras.dbrepository
 
 import kotlin.reflect.KProperty1
 

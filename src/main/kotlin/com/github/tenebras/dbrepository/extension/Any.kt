@@ -21,7 +21,7 @@ fun Any?.toMap(exclude: List<String> = emptyList(), extension: Map<String, Any?>
 
     val properties = mutableMapOf<String, Any?>()
 
-    this::class.declaredMemberProperties.forEach {
+    this!!::class.declaredMemberProperties.forEach {
         if (!exclude.contains(it.name)) {
             properties[it.name] = it.getter.call(this)
         }

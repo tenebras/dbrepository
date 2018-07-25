@@ -1,5 +1,6 @@
-package com.github.tenebras.dbrepository.alternative
+package com.github.tenebras.dbrepository
 
+import com.github.tenebras.dbrepository.fixture.TestItem
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 

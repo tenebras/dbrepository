@@ -1,6 +1,4 @@
-package com.github.tenebras.dbrepository.alternative
-
-import com.github.tenebras.dbrepository.ColumnType
+package com.github.tenebras.dbrepository
 
 class Sql(private val columnTypes: Map<String, ColumnType>, init: Sql.() -> String) {
 

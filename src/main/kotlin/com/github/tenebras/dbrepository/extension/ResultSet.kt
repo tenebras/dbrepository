@@ -12,6 +12,6 @@ fun ResultSet.getUUID(columnLabel: String): UUID? {
 }
 
 fun ResultSet.getLocalDate(columnLabel: String): LocalDate? = getDate(columnLabel)?.toLocalDate()
-
 fun ResultSet.getZonedDateTime(columnLabel: String): ZonedDateTime? = getObject(columnLabel, OffsetDateTime::class.java)?.toZonedDateTime()
 fun ResultSet.getOffsetDateTime(columnLabel: String): OffsetDateTime? = getObject(columnLabel, OffsetDateTime::class.java)
+fun ResultSet.getChar(columnLabel: String) = getString(columnLabel)[0]

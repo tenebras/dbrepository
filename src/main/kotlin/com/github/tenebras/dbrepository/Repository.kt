@@ -1,94 +1,64 @@
-//package com.github.tenebras.dbrepository
-//
-//import com.github.tenebras.dbrepository.extension.toSnakeCase
-//import com.github.tenebras.dbrepository.extension.wrappedStatement
-//import java.sql.Connection
-//import java.sql.ResultSet
-//import kotlin.reflect.KProperty1
-//import kotlin.reflect.full.memberProperties
-//import kotlin.reflect.jvm.javaType
-//
-//open class Repository(val table: String, val connection: Connection, val valueReader: ValueReader) {
-//
-//
-//    @Throws(EntityNotFound::class)
-//    inline fun <reified T> query(noinline stmtInit: SQLStatement.() -> String): T {
-//
-//        val rs = connection.wrappedStatement(SQLStatement(stmtInit)).executeQuery()
-//
-//        if (!rs.isBeforeFirst) {
-//            throw EntityNotFound()
-//        }
-//
-//        return rs.entity()
+package com.github.tenebras.dbrepository
+import com.github.tenebras.dbrepository.extension.execute
+import com.github.tenebras.dbrepository.extension.query
+import com.github.tenebras.dbrepository.extension.toMap
+import com.github.tenebras.dbrepository.extension.toSnakeCase
+import java.sql.Connection
+import java.sql.ResultSet
+import kotlin.reflect.KProperty1
+
+open class Repository<T : Any>(val connection: Connection, val entityReader: EntityReader, val properties: TableInfo<T>) {
+    private val columnTypes = mutableMapOf<String, ColumnType>()
+    protected val table: String = properties.tableName // todo: escape
+    protected val primaryKey: String = properties.primaryKey?.name?.toSnakeCase() ?: ""
+
+    protected fun columnType(types: Map<String, ColumnType>) = columnTypes.putAll(types)
+    protected fun columnType(vararg arrayOfPairs: Pair<KProperty1<*, *>, ColumnType>)
+        = columnTypes.putAll(arrayOfPairs.map { it.first.name.toSnakeCase() to it.second })
+
+    fun query(statement: Sql.() -> String): T = connection.query(Sql(columnTypes, statement)).entity()
+    fun queryAll(statement: Sql.() -> String): List<T> = connection.query(Sql(columnTypes, statement)).entities()
+
+    fun exec(statement: Sql.() -> String) = connection.execute(Sql(columnTypes, statement)) // column types!!!
+
+    fun add(params: Map<String, Any?>): Boolean {
+
+        val mutableParams = params.mapKeys { it.key.toSnakeCase() }.toMutableMap()
+
+        if (isPrimaryKeySpecified() && params.containsKey(primaryKey) && params[primaryKey] == null) {
+            mutableParams.remove(primaryKey)
+        }
+
+        return connection.execute(Sql.insert(table, mutableParams, columnTypes))
+    }
+
+    fun add(item: T, skipped: List<KProperty1<T, *>> = emptyList()): Boolean = add(
+        item.toMap(skipped.map { it.name })
+    )
+
+    private fun isPrimaryKeySpecified(): Boolean = properties.primaryKey !== null
+
+//    fun where(x: FindContions<T>.() -> FindContions.Condition<T>) {
+//        x.invoke(FindContions())
 //    }
-//
-//    inline fun <reified T> queryAll(noinline stmtInit: SQLStatement.() -> String): Array<T> {
-////        return connection.wrappedStatement(SQLStatement(stmtInit)).executeQuery().entities()
-////    }
-////
-////    fun exec(stmtInit: SQLStatement.() -> String) = connection.wrappedStatement(SQLStatement(stmtInit)).execute()
-//
-//        clazz.memberProperties.forEach {
-//            if (!ignored.contains(it.name)) {
-//
-//                val returnType = it.returnType.javaType as Class<*>
-//                val value = it.call(model)
-//
-//                if (returnType.isArray) {
-//                    val arrayType = returnType.simpleName.dropLast(2).toLowerCase()
-//
-//                    params.put(it.name.toSnakeCase(), SQLStatement.TypedBinding(value, arrayType))
-//                } else {
-//                    params.put(it.name.toSnakeCase(), value)
-//                }
-//
-//            }
-//        }
-//
-//        insert(params)
-//    }
-//
-//    fun insert(params: Map<String, Any?>) {
-//
-//        val sql = "insert into $table " +
-//            "(${params.keys.joinToString(", ")}) " +
-//            "VALUES(${"?, ".repeat(params.keys.size).dropLast(2)})"
-//
-//        connection.wrappedStatement(sql, params.values).execute()
-//    }
-//
-//    inline fun <reified T> ResultSet.entity(): T {
-//
-//        if (isBeforeFirst) {
-//            next()
-//        }
-//
-//        val constructor = T::class.constructors.first()
-//        val params = constructor.parameters.map {
-//            valueReader.read(this, it)
-//        }
-//
-//        return constructor.call(*params.toTypedArray())
-//    }
-//
-//    inline fun <reified T> ResultSet.entities(): Array<T> {
-//        val items = mutableListOf<T>()
-//        val constructor = T::class.constructors.first()
-//
-//        while (next()) {
-//
-//            if (valueReader.couldBeRead(T::class)) {
-//                items.add(valueReader.readFirst(this, T::class) as T)
-//            } else {
-//                val params = constructor.parameters.map {
-//                    valueReader.read(this, it)
-//                }
-//
-//                items.add(constructor.call(*params.toTypedArray()))
-//            }
-//        }
-//
-//        return items.toTypedArray()
-//    }
-//}
+
+    fun ResultSet.entity(): T {
+
+        if (isBeforeFirst) {
+            next()
+        }
+
+        return entityReader.read(this, properties.entity)
+    }
+
+    fun ResultSet.entities(): List<T> {
+        val items = mutableListOf<T>()
+
+        while (next()) {
+            items.add(entity())
+        }
+
+        return items
+    }
+}
+

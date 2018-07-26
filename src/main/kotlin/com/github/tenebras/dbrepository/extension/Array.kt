@@ -8,10 +8,10 @@ fun <T> Array<T>.toJson(exclude: List<String> = emptyList(), append: (T) -> Map<
     return this.map { it.toMap(exclude) + append.invoke(it) }.toJson()
 }
 
-//fun <T> Array<T>.toJson(entityExtension: Any, exclude: List<String> = emptyList()): String {
-//    return this.toJson(entityExtension.toMap(), exclude)
-//}
-
 fun <T> Array<T>.toJson(exclude: List<String> = emptyList()): String {
     return this.toJson(emptyMap(), exclude)
+}
+
+fun <T> Iterable<T>.toJson(exclude: List<String> = emptyList(), append: (T) -> Map<String, Any?>): String {
+    return this.map { it.toMap(exclude) + append.invoke(it) }.toJson()
 }

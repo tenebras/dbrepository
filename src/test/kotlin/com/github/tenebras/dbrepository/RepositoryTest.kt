@@ -12,13 +12,27 @@ class RepositoryTest {
     fun `it should read array of objects`() {
 
 
-        val repository = object : Repository<TestItem>(connection(), DefaultEntityReader(), TableInfo("test", TestItem::id)) {
+        val items = object : Repository<TestItem>(connection(), DefaultEntityReader(), TableInfo("test", TestItem::id)) {
+            init {
+                columnType(
+                    TestItem::arrayOfJsonObjects to ColumnType.JSONB
+                )
+            }
+
             fun first() = query { "select * from $table limit 1 " }
-            fun allByAuthorId(authrorId: String) = queryAll { "select * from $table where author_id=${bind(authrorId)}" }
+            fun allByAuthorId(authorId: String) = queryList { "select * from $table where author_id=${bind(authorId)}" }
+
+            fun allValues() = queryListOf<String> { "select value from $table" }
+
         }
 
-        val item = repository.first()
-        println(item)
+        items.update(TestItem(1, "updated value", arrayOf()))
+
+        println(items.first())
+
+
+        // val item = repository.allValues()
+        //println(item)
     }
 
     @Test

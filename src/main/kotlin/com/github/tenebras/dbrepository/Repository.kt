@@ -21,7 +21,7 @@ open class Repository<T : Any>(val connection: Connection, val entityReader: Ent
 
     fun query(statement: Sql.() -> String): T = connection.query(Sql(columnTypes, statement)).entity(tableInfo.entity)!!
 
-    fun queryList(statement: Sql.() -> String): List<T?> = connection.query(Sql(columnTypes, statement)).entities(tableInfo.entity)
+    fun queryList(statement: Sql.() -> String): List<T> = connection.query(Sql(columnTypes, statement)).entities(tableInfo.entity)
 
     inline fun <reified U : Any> queryAs(noinline statement: Sql.() -> String): U? = connection.query(Sql(columnTypes, statement)).entity()
 
@@ -57,16 +57,16 @@ open class Repository<T : Any>(val connection: Connection, val entityReader: Ent
 //        Sql.find(table, x.invoke(FindContions()))
 //    }
 
-    fun <U : Any> ResultSet.entity(clazz: KClass<U>): U? {
+    fun <U : Any> ResultSet.entity(clazz: KClass<U>): U {
         if (isBeforeFirst) {
             next()
         }
 
-        return entityReader.read(this, clazz)
+        return entityReader.read(this, clazz)!!
     }
 
-    fun <U : Any> ResultSet.entities(clazz: KClass<U>): List<U?> {
-        val items = mutableListOf<U?>()
+    fun <U : Any> ResultSet.entities(clazz: KClass<U>): List<U> {
+        val items = mutableListOf<U>()
 
         while (next()) {
             items.add(entity(clazz))
@@ -75,7 +75,7 @@ open class Repository<T : Any>(val connection: Connection, val entityReader: Ent
         return items
     }
 
-    inline fun <reified U : Any> ResultSet.entities(): List<U?> = entities(U::class)
-    inline fun <reified U : Any> ResultSet.entity(): U? = entity(U::class)
+    inline fun <reified U : Any> ResultSet.entities(): List<U> = entities(U::class)
+    inline fun <reified U : Any> ResultSet.entity(): U = entity(U::class)
 }
 

@@ -22,13 +22,15 @@ data class TestItem(
 )
 data class Comment(val value: String, val authorId: String, val at: ZonedDateTime, val id: Int? = null)
 
+data class Complex(val value: String)
+
 data class Types(
     val bBoolean: Boolean,
     val cChar: Char,
     val cChar_fixed: String,
     val cVarchar_limited: String,
     val cVarchar: String,
-    val cText: String,
+    val cText: Complex,
     val nSmallint: Short,
     val nInt: Int,
     val nBigint: Long,
@@ -55,5 +57,7 @@ data class Types(
     val sInet: String? = null,
     val sMacaddr: String? = null
 )
+
+
 
 fun connection() = DriverManager.getConnection("jdbc:postgresql://localhost/dbrepository")

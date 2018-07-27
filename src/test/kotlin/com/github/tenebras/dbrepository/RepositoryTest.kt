@@ -1,10 +1,8 @@
 package com.github.tenebras.dbrepository
 
-import com.github.tenebras.dbrepository.fixture.Comment
-import com.github.tenebras.dbrepository.fixture.Status
-import com.github.tenebras.dbrepository.fixture.TestItem
-import com.github.tenebras.dbrepository.fixture.connection
+import com.github.tenebras.dbrepository.fixture.*
 import org.junit.Test
+import java.sql.Connection
 import java.time.ZonedDateTime
 
 class RepositoryTest {
@@ -51,4 +49,24 @@ class RepositoryTest {
 
         repository.add(item)
     }
+
+    @Test
+    fun `it should read complex type`() {
+        val types = TypesRepository(connection())
+
+        types.update(types.first())
+    }
+}
+
+
+class TypesRepository(conn: Connection) : Repository<Types>(conn, DefaultEntityReader(), Types::bBoolean) {
+
+    init {
+        columnType(
+            Types::json to ColumnType.JSON,
+            Types::jsonb to ColumnType.JSONB
+        )
+    }
+
+    fun first() = query { "select * from $table limit 1" }
 }

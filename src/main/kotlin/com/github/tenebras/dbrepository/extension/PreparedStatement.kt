@@ -6,6 +6,7 @@ import java.sql.PreparedStatement
 import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 
+// todo: rewrite this with rely on parameter type
 fun PreparedStatement.bindMultiple(values: List<Sql.TypedBinding>): PreparedStatement {
 
     values.forEachIndexed { idx, it ->
@@ -29,13 +30,26 @@ fun PreparedStatement.bindMultiple(values: List<Sql.TypedBinding>): PreparedStat
                         }
                     }
                     else
-                    -> setObject(idx + 1, value)
+                    ->
+                        if (columnTypeName(idx + 1).isStringType()) {
+                            setObject(idx + 1, value.toString())
+                        } else {
+                            setObject(idx + 1, value)
+                        }
                 }
             }
         }
     }
 
     return this
+}
+
+fun PreparedStatement.columnTypeName(idx: Int): String {
+    return parameterMetaData.getParameterTypeName(idx)
+}
+
+fun String.isStringType(): Boolean {
+    return arrayOf("char", "varchar", "text").contains(this)
 }
 
 private fun normalizeValue(value: Any?): Any? =

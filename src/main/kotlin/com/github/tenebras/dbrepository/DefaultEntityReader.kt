@@ -11,6 +11,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 open class DefaultEntityReader : EntityReader {
 
@@ -93,7 +94,17 @@ open class DefaultEntityReader : EntityReader {
                     }
                 }
                 is PgArray -> obj.array
-                else -> obj
+                else ->
+                    //paramClazz.qualifiedName == obj!!::class.qualifiedName
+                    if (obj === null || obj::class.isSubclassOf(paramClazz)) {
+                        obj
+                    } else {
+                        if (paramClazz.constructors.first().parameters.size == 1) {
+                            paramClazz.constructors.first().call(obj)
+                        } else {
+                            throw FailedToResolveValue("${clazz.simpleName}::${it.name} value is $obj")
+                        }
+                    }
             }
         }
 

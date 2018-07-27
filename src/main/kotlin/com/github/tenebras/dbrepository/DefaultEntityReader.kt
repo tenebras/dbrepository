@@ -85,7 +85,7 @@ open class DefaultEntityReader : EntityReader {
             } else
                 rs.getObject(name)
 
-            when (obj) {
+            val mappedValue = when (obj) {
                 is PGobject -> when (obj.type) {
                     ColumnType.JSON.typeName, ColumnType.JSONB.typeName ->
                         obj.value.parseJson((type.classifier as KClass<*>).java)
@@ -106,6 +106,12 @@ open class DefaultEntityReader : EntityReader {
                         }
                     }
             }
+
+            if (mappedValue == null && !it.type.isMarkedNullable) {
+                throw FailedToResolveValue("${clazz.simpleName}::${it.name} value is $obj")
+            }
+
+            mappedValue
         }
 
         return constructor.call(*params.toTypedArray())

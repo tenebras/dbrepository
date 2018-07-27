@@ -7,10 +7,15 @@ import java.sql.Time
 import java.time.ZonedDateTime
 import java.util.*
 
+enum class Status {
+    YES, NO;
+}
+
 data class TestItem(
     val id: Int,
     val value: String,
-    val arrayOfJsonObjects: Array<Comment>
+    val arrayOfJsonObjects: Array<Comment>,
+    val enum: Status
     //val intArray: Array<Int>,
     //val uuid: UUID,
     //val map: Map<String, String>

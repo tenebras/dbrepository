@@ -10,7 +10,15 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 open class Repository<T : Any>(val connection: Connection, val entityReader: EntityReader, val tableInfo: TableInfo<T>) {
+
+    constructor(
+        connection: Connection,
+        entityReader: EntityReader,
+        primaryKey: KProperty1<T, *>
+    ) : this(connection, entityReader, TableInfo(primaryKey))
+
     val columnTypes = mutableMapOf<String, ColumnType>()
+
     protected val table: String = tableInfo.tableName // todo: escape
     protected val primaryKey: String = tableInfo.primaryKey?.name?.toSnakeCase() ?: ""
 
@@ -19,15 +27,17 @@ open class Repository<T : Any>(val connection: Connection, val entityReader: Ent
 
     fun isPrimaryKeySpecified(): Boolean = tableInfo.primaryKey !== null
 
-    fun query(statement: Sql.() -> String): T = connection.query(Sql(columnTypes, statement)).entity(tableInfo.entity)!!
+    fun query(statement: Sql.() -> String): T {
+        return connection.query(Sql(columnTypes, statement)).entity(tableInfo.entity)
+    }
 
-    fun queryList(statement: Sql.() -> String): List<T> = connection.query(Sql(columnTypes, statement)).entities(tableInfo.entity)
+    fun queryList(statement: Sql.() -> String): List<T> {
+        return connection.query(Sql(columnTypes, statement)).entities(tableInfo.entity)
+    }
 
-    inline fun <reified U : Any> queryAs(noinline statement: Sql.() -> String): U? = connection.query(Sql(columnTypes, statement)).entity()
-
-    inline fun <reified U : Any> queryListOf(noinline statement: Sql.() -> String): List<U?> = connection.query(Sql(columnTypes, statement)).entities()
-
-    fun exec(statement: Sql.() -> String) = connection.execute(Sql(columnTypes, statement))
+    fun exec(statement: Sql.() -> String): Boolean {
+        return connection.execute(Sql(columnTypes, statement))
+    }
 
     fun add(params: Map<String, Any?>): Boolean {
 
@@ -40,9 +50,13 @@ open class Repository<T : Any>(val connection: Connection, val entityReader: Ent
         return connection.execute(Sql.insert(table, mutableParams, columnTypes))
     }
 
-    fun add(item: T, skipped: List<KProperty1<T, *>> = emptyList()): Boolean = add(item.toMap(skipped.map { it.name }))
+    fun add(item: T, skipped: List<KProperty1<T, *>> = emptyList()): Boolean {
+        return add(item.toMap(skipped.map { it.name }))
+    }
 
-    fun update(item: T, skipped: List<KProperty1<T, *>> = emptyList()): Boolean = update(item.toMap(skipped.map { it.name }))
+    fun update(item: T, skipped: List<KProperty1<T, *>> = emptyList()): Boolean {
+        return update(item.toMap(skipped.map { it.name }))
+    }
 
     fun update(params: Map<String, Any?>): Boolean {
         return connection.execute(Sql.update(
@@ -51,6 +65,14 @@ open class Repository<T : Any>(val connection: Connection, val entityReader: Ent
             params.mapKeys { it.key.toSnakeCase() },
             columnTypes
         ))
+    }
+
+    inline fun <reified U : Any> queryAs(noinline statement: Sql.() -> String): U? {
+        return connection.query(Sql(columnTypes, statement)).entity()
+    }
+
+    inline fun <reified U : Any> queryListOf(noinline statement: Sql.() -> String): List<U?> {
+        return connection.query(Sql(columnTypes, statement)).entities()
     }
 
 //    fun where(x: FindContions<T>.() -> FindContions.Condition<T>) {

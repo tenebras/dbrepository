@@ -75,12 +75,14 @@ open class DefaultEntityReader : EntityReader {
 
             val obj = if (hasValueReaderFor(paramClazz))
                 reader(paramClazz)!!.invoke(rs, name)
-            else
-                rs.getObject(name)
+            else if (paramClazz.javaObjectType.isEnum) {
+                val value = rs.getString(name)
+                val constants = (paramClazz as KClass<Enum<*>>).javaObjectType.enumConstants
 
-            if (name == "hstore") {
-                println(obj)
-            }
+                constants.firstOrNull { it.name == value }
+                    ?: throw Exception("No matching enum constant for class ${paramClazz.simpleName}, value is '$value'")
+            } else
+                rs.getObject(name)
 
             when (obj) {
                 is PGobject -> when (obj.type) {

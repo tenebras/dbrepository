@@ -1,6 +1,7 @@
 package com.github.tenebras.dbrepository
 
 import com.github.tenebras.dbrepository.fixture.Comment
+import com.github.tenebras.dbrepository.fixture.Status
 import com.github.tenebras.dbrepository.fixture.TestItem
 import com.github.tenebras.dbrepository.fixture.connection
 import org.junit.Test
@@ -26,12 +27,13 @@ class RepositoryTest {
 
         }
 
-        items.update(TestItem(1, "updated value", arrayOf()))
+        items.update(TestItem(1, "updated value", arrayOf(), Status.NO))
 
-        println(items.first())
+        //println(items.first())
 
         // val item = repository.allValues()
-        //println(item)
+        val item = items.first()
+        println(item)
     }
 
     @Test
@@ -45,7 +47,7 @@ class RepositoryTest {
             }
         }
 
-        val item = TestItem(0, "some statement", arrayOf(Comment("comment statement", "autor_id", ZonedDateTime.now())))
+        val item = TestItem(0, "some statement", arrayOf(Comment("comment statement", "autor_id", ZonedDateTime.now())), Status.NO)
 
         repository.add(item)
     }

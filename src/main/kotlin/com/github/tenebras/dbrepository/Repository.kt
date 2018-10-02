@@ -6,8 +6,18 @@ import com.github.tenebras.dbrepository.extension.toMap
 import com.github.tenebras.dbrepository.extension.toSnakeCase
 import java.sql.Connection
 import java.sql.ResultSet
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.emptyList
+import kotlin.collections.map
+import kotlin.collections.mapKeys
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.putAll
+import kotlin.collections.toMutableMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.collections.toMap as kotlinToMap
 
 open class Repository<T : Any>(val connection: Connection, val entityReader: EntityReader, val tableInfo: TableInfo<T>) {
 
@@ -33,6 +43,14 @@ open class Repository<T : Any>(val connection: Connection, val entityReader: Ent
 
     fun queryList(statement: Sql.() -> String): List<T> {
         return connection.query(Sql(columnTypes, statement)).entities(tableInfo.entity)
+    }
+
+    fun <K> queryMap(x: (T) -> Pair<K, T>, statement: Sql.() -> String): Map<K, T> {
+        return queryList(statement).map(x).kotlinToMap()
+    }
+
+    fun <K> queryMap(x: KProperty1<T, K>, statement: Sql.() -> String): Map<K, T> {
+        return queryList(statement).map { x.get(it) to it }.kotlinToMap()
     }
 
     fun exec(statement: Sql.() -> String): Boolean {

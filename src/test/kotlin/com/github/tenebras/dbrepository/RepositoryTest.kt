@@ -55,6 +55,9 @@ class RepositoryTest {
         val types = TypesRepository(connection())
 
         types.update(types.first())
+
+        types.queryMap( { it.cVarchar to it} ) {""}
+        types.queryMap(Types::cVarchar) {""}
     }
 }
 
